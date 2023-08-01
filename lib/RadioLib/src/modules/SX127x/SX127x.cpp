@@ -1582,7 +1582,7 @@ float SX127x::getRSSI(bool packet, bool skipReceive, int16_t offset) {
     // for FSK, there is no packet RSSI
 
     // enable listen mode
-    if(!skipReceive) {
+    if(skipReceive) {
       startReceive();
     }
 
@@ -1590,7 +1590,7 @@ float SX127x::getRSSI(bool packet, bool skipReceive, int16_t offset) {
     float rssi = (float)_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_RSSI_VALUE_FSK) / -2.0;
 
     // set mode back to standby
-    if(!skipReceive) {
+    if(skipReceive) {
       standby();
     }
 
