@@ -15,7 +15,88 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+  //////////////////////////////////////////////////////////////////////
+  
+  This is a brief explanation of the principle of operation:
+  
+  For this to work there are several assumptions:
+  
+  1. The RF Chip receive in NRZ. 
+  
+  2. Satellite transmit in NRZI(Space), which means that, every time the
+     satellite is going to send a ZERO, the state of the channel will
+     change (from f1 -> f2 or from f2 -> f1) and when a ONE is going to
+     be transmitted no change in the channel is performed, that is,
+     frequency remains in f1 or in f2.  
+  
+  3. Satellite is in f1 before transmitting the first ZERO, and then
+     change to f2 for that first ZERO, which in NRZ means to receive
+     a ONE.
+
+                             fd
+                           <----->
+                          |       |
+                  |               |
+                  |               |
+     --------------------------------------> f
+                          fc
+		  f1    --->     f2 (for sending first ZERO)
+		  
+  4. The RF Chip will be configured with a specific Synch Word to trigger 
+     the reception. Given that the satellite codify the information transmitted 
+     in NRZI(S) and the Chip receives in NRZ, the Synch Word has to be previously
+     translated from NRZI(S) to NRZ. In order to create the Synch Word first
+     we take the flag 0x7E and the two first bytes of data as transmitted
+     by the satellite, and convert it to NRZ.
+
+     For a satellite transmitting 0x7E, 0x49 and 0X39 as first three bytes, the
+     synchword is calculated, beginning in ZERO, and changing from 0->1 or from
+     1->0 everytime a ZERO is found in the data, and keeping the previous state
+     everytime a ONE is found in the data.
+     
+         7         E         4         9         3         9    
+      0 1 1 1   1 1 1 0   0 1 0 0   1 0 0 1   0 0 1 1   1 0 0 1
+     
+   0->1 1 1 1   1 1 1 0   1 1 0 1   1 0 1 1   0 1 1 1   1 0 1 1
+         F         E         D         B         7         B
+	     254                 219                  123
+
+   Syncword = [254, 219, 123]
+
+   When data packet is received, the process to extrach the AX.25 frame is as
+   follows:
+   
+                            NRZ
+                                       \ \ ____
+  ))))                    bit(t)  -----| |     \
+                                       | |      o---- NRZI(S)
+      |                   bit(t+1)-----| | ____/      
+      |                                / /
+      |                          
+     / \                                       ADD SYNCHWORD TO
+    /   \       RF CHIP         NRZI(S)       THE PACKET RECEIVED    
+   /     \     ---------        ------        -------------------        ----------------------                
+  /       \___| FSK NRZ | ---> | NXOR | ---> | FRAME HDLC(AX.25) | ---> | SKIP FIRST 0X7E FLAG |  
+               ---------        ------        -------------------        ---------------------- 
+	                                                                            |
+	                                                                           \|/
+	                                                                  ---------------------
+                                                                         | REMOVE BIT STUFFING |
+                                                                          ---------------------
+	                                                                            |
+	                                                                           \|/
+ -------------------------       -----------------------------------       ----------------------
+| CALCULATE CRC & COMPARE | <-- | SPLIT FRAME INVERTED AX.25  & CRC | <-- | DETECT END FLAG 0X7E |
+ -------------------------       -----------------------------------       ----------------------
+            |
+	   \|/
+ ------------------------------------------         -------------         --------------------
+| INVERT BITS FOR EACH BYTE OF AX.25 FRAME | ----> | FRAME AX.25 | ----> | UPLOAD AX.25 FRAME | 
+ ------------------------------------------	    -------------         --------------------
+  
 */
+
 //////////////////////////////////////////////////////////////////////*/
 #include <stdio.h>
 #include "BitCode.h"
