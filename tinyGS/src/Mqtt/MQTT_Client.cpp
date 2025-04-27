@@ -27,6 +27,10 @@
 #include "../OTA/OTA.h"
 #include "../Logger/Logger.h"
 #include <esp_ota_ops.h>
+////////////////////////////////////////////////////////////
+#include "../Satellites/Satellites.h"
+bool allow_satellite_filtering=true;
+////////////////////////////////////////////////////////////
 
 
 MQTT_Client::MQTT_Client()
@@ -490,6 +494,22 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       return;
     }
    
+    //////////////////////////////////////////////////////
+    // check satellite against allowed satellites to track 
+    //////////////////////////////////////////////////////
+    if (allow_satellite_filtering) {
+      char sat[25];
+      int norad_id=0;
+      norad_id=(doc["NORAD"]);
+      strcpy(sat, doc["sat"].as<char *>());
+      Log::console(PSTR("Checking satellite %s Norad ID: %i"),sat, norad_id);
+      if (!Satellites::isValidSatellite(doc["NORAD"]))
+      {
+        Log::console(PSTR("Satelite is not in the list. Listening not started."));
+        return;
+      }
+    }
+
     ModemInfo &m = status.modeminfo;
     m.modem_mode = doc["mode"].as<String>();
     strcpy(m.satellite, doc["sat"].as<char *>());
