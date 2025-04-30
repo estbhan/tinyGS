@@ -21,13 +21,10 @@
 #define SATELLITES_H
 class Satellites{
     public:
-    static int coding(int noradid);
     static bool isValidSatellite(int norad);
-    static float estimatedSatelliteFrequency(int noradid, float freq);
+    static bool isValidSatelliteName(char name[25]);
     static bool allowDistributeSatelliteData(int norad);
+    static bool allowDistributeSatelliteNameData(char name[25]);
     static bool isNotValidSatellite(int norad);
-    static int whitening_params(int noradid, uint16_t *seed);
-    //static int crc_params(int noradid);
-    static int crc_params(int noradid, uint8_t *nbytes, uint16_t *initial, uint16_t *finalxor, uint16_t *poly, bool *inverted);
 };
 #endif

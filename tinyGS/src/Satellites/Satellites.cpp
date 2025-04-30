@@ -18,6 +18,8 @@
 */
 
 #include "Satellites.h"
+#include <string.h>
+
 
 //////////////////////////////////
 //18/09/2022 - Filtro de satelites
@@ -26,10 +28,14 @@
 //////////////////////////////////
 //Norbi....................46494
 //SATLLA-B.................51014
-//FEES.....................48082 -- IARU COORDINATED
+//FEES.....................48082 
 //UPMSAT-2.................46276
-//INST-2TD.................51658
+//INS-2TD..................51658
 //ASTROCAST 0.1............43798
+//HYPE.....................62687
+//ONDOSAT OWL-1............59111
+//ONDOSAT OWL-2............59113
+//STRATOSAT TK-1...........57167
 
 //BZLORA-6, Upape, DATESat 99999
 //FOSSASAT-1B..............99333
@@ -43,32 +49,80 @@
 //Grizu-263a...............99488
 //Sapling2.................56214 / 56213
 
-//Monitor 3................57180 (IARU Uncoordinated 12/07/2023) RS58S
-//Norby-2..................57181 (IARU Uncoordinated 12/07/2023)
-//POLYTECH-3...............53191 (IARU Uncoordinated 12/07/2023) RS46S
-//CSTP-1.1.................57202 (IARU Uncoordinated 12/07/2023)
-//CSTP-1.2.................57186 (IARU Uncoordinated 12/07/2023)
-//RS52XX...................57167 (IARU Uncoordinated 12/07/2023)
-//Monitor 4................57182 (IARU Uncoordinated 12/07/2023) RS57S 
+//Monitor 3................57180 
+//Norby-2..................57181 
+//POLYTECH-3...............53191 
+//CSTP-1.1.................57202 
+//CSTP-1.2.................57186 
+//RS52XX...................57167 
+//Monitor 4................57182 
 //RS39S....................57184 
 
 
 bool Satellites::isValidSatellite(int norad){
-    if (   norad==46494 // Norbi --
-        || norad==48082 // FEES --
-        || norad==46276 // UPMSAT-2 -- 
-        || norad==51658 || norad==43798 || norad==57208 // INS-2TD -- ASTROCAST 0.1 - RS52SD
-        || norad==57181 || norad==58665 || norad==57191 // Norby-2 -- MDQubeSAT-2 -- Polytech-3
+//Norbi....................46494
+//UPMSAT-2.................46276
+//INS-2TD..................51658
+//ASTROCAST 0.1............43798
+//HYPE.....................62687
+//ONDOSAT OWL-1............59111
+//ONDOSAT OWL-2............59113
+//STRATOSAT TK-1...........57167
+    if (   norad==46494 // Norbi 
+        || norad==46276 // UPMSAT-2  
+        || norad==43798 // ASTROCAST 0.1
+        || norad==59114 || norad==59117 //ONDOSAT OWL 1 & 2
+        || norad==62687 // HYPE
+        || norad==57208 // RS52SD
+        || norad==57181 || norad==58665 // Norby-2 -- MDQubeSAT-2 
+        || norad==61745 || norad==61747 || norad==57191 //  Polytech
         || norad==56213 || norad==57180 || norad==57168 // -- -- ReshUCube-2
         || norad==53191 || norad==57202 || norad==57205 // -- -- RS52SE
         || norad==57186 || norad==57167 || norad==57169 // -- -- RS52SV
         || norad==57200 || norad==57170 // RS52SB -- RS52SG
         || norad==57183 // 2023-091T
-        || norad==59114 || norad==59117 //ONDOSAT OWL 1 & 2
-        || norad==98866 // SR0-DEMOSAT 60455
-        || norad==44406 // LUCKY-7
-        || norad==57179 // Norby-2 --
+        || norad==61750 //MTUSI-1
+        || norad==61751 //VLADIVOSTOK
+        || norad==58665 //MDQUBESAT 2
+        || norad==61768 //HOD HOD 1-A
+        || norad==57186 || norad==57202 || norad==61744 || norad==61775 || norad==61777 //CSPT
+        || norad==99999 //VARIOS
+        )
+        {
+          return true;
+        } else { //Filtro de satélites
+          return false;
+        }
+}
 
+bool Satellites::isValidSatelliteName(char name[25]){
+    if (   strcmp(name,"Norbi")==0 
+        //|| strcmp(name,"Norby-2")==0 
+        //|| strcmp(name,"Polytech_Universe-3")==0 
+        //|| strcmp(name,"Polytech_Universe-4")==0 
+        //|| strcmp(name,"Polytech_Universe-5")==0 
+        //|| strcmp(name,"CSTP-2.1")==0 || strcmp(name,"CSTP-2.2")==0 || strcmp(name,"CSTP-2.11")==0 
+        //|| strcmp(name,"CSTP-1.1")==0 || strcmp(name,"CSTP-1.2")==0 
+        //|| strcmp(name,"RS52SB")==0 || strcmp(name,"RS52SV")==0 || strcmp(name,"RS52SG")==0 
+        //|| strcmp(name,"RS52SD")==0 || strcmp(name,"RS52SE")==0 
+        //|| strcmp(name,"Vladivostok-1")==0 
+        //|| strcmp(name,"Norby-3")==0 
+        //|| strcmp(name,"MDQubeSAT-2")==0 
+        //|| strcmp(name,"ReshUCube-2")==0 
+        //|| strcmp(name,"MTUSI-1")==0 
+        //|| strcmp(name,"HOD-HOD-1A")==0 
+        || strcmp(name,"ONDOSAT-OWL-1")==0 
+        || strcmp(name,"ONDOSAT-OWL-2")==0 
+        || strcmp(name,"HYPE")==0 
+        || strcmp(name,"PROMETHEUS-1")==0 
+        || strcmp(name,"ASTROCAST 0.1")==0 
+        || strcmp(name,"UPMSAT-2")==0 
+        || strcmp(name,"StratoSat-TK1")==0 
+        || strcmp(name,"TUSUR GO")==0 
+        || strcmp(name,"Colibri-S")==0 
+        || strcmp(name,"RTU MIREA1")==0 
+        || strcmp(name,"HORIZON")==0 
+        || strcmp(name,"VIZARD-ION")==0 
         )
         {
           return true;
@@ -89,11 +143,13 @@ bool Satellites::isNotValidSatellite(int norad){
 
 bool Satellites::allowDistributeSatelliteData(int norad){
     if (   norad==46494 // Norbi 
-        || norad==48082 // FEES 
         || norad==46276 // UPMSAT-2 
         || norad==51658 // INS-2TD
         || norad==43798 // ASTROCAST 0.1
         || norad==59114 || norad==59117 //ONDOSAT OWL 1 & 2 
+        || norad==62687 // HYPE
+        //|| norad==57167 // StratoSat-TK1
+        //|| norad==48082 // FEES 
         //|| norad==57169 // RS52SV
         //|| norad==57170 // RS52SG
         //|| norad==57200 // RS52SB
@@ -102,8 +158,6 @@ bool Satellites::allowDistributeSatelliteData(int norad){
         //|| norad==57181 || norad==58665 || norad==57191 // MDQubeSAT-2 -- Polytech-3
         //|| norad==57202 || norad==57186   // CSPT 1&2
         //|| norad==57179 // Norby-2 --
-        || norad==98866 // SR0-DEMOSAT 60455 
-        || norad==44406 // LUCKY-7 
         )
         {
           return true;
@@ -112,156 +166,27 @@ bool Satellites::allowDistributeSatelliteData(int norad){
         }
 }
 
-/*
-If the satellite is not transmitting at the published frequency, with this adjustment
-the receiver satellite frequency could be corrected. The method will provide the 
-estimated satellite transmitter frequency.  
-*/
-float Satellites::estimatedSatelliteFrequency(int noradid, float freq){
-  float aux=freq;
-  switch (noradid)
-  {
-  case 48082://FEES
-    aux=437.203;
-    break;
-  
-  case 51014://SATLLA-B
-    aux=437.255;
-    break;
-  
-  case 56214://SAPLING2
-    aux=437.395;
-    break;
-
-  case 56213://SAPLING2
-    aux=437.395;
-    break;
-
-  case 57168://Reshucube
-    aux=436.001;
-    break;
-
-  case 57191://Polytech_Universe-3
-    aux=436.556;
-    break;
-
-  case 57205://RS52SE
-    aux=436.2622;
-    break;
-
-  case 98866://SR-0
-    aux=437.402;
-    break;
-
-  default:
-    break;
-  }  
-  return aux;
-}
-
-/*
-Output:
-0: Raw
-1: AX25
-*/
-int Satellites::coding(int noradid){
-    int aux=0;
-  switch (noradid)
-  {
-  case 46276://UPMSAT-2
-    aux=1;
-    /* code */
-    break;
-  
-  case 51658://INS-2TD
-    aux=1;
-    /* code */
-    break;
-
-  case 43798://ASTROCAST 0.1
-    aux=1;
-    /* code */
-    break;
-
-  case 56188://CIRBE
-    aux=1;
-    /* code */
-    break;
-
-  case 98866://SR-0
-    aux=1;
-    /* code */
-    break;
-
-  default:
-    aux=0;
-    break;
-  }
-  return aux;
-}
-
-/*
-------------- 
-10/06/2024
--------------
-Output:
-0: No Scramble
-1: Whitening
-*/
-int Satellites::whitening_params(int noradid, uint16_t *seed){
-    int aux=0;
-  switch (noradid)
-  {
-  case 44406://LUCKY-7
-    aux=1;
-    *seed=0x01E1;
-    break;
-
-  default:
-    aux=0;
-    *seed=0;
-    break;
-  }
-  return aux;
-}
-
-/*
-------------- 
-11/09/2024
--------------
-Output:
-0: No CRC Check
-1: CRC Check by Software: Check performed over the data stream recieved and using the 
-                          last two bytes as the transmitted CRC.
-2: CRC Check by Hardware: Configured at the RF Board configuration time. The board will
-                          perform the CRC check transparently to the user.
-*/
-
-int Satellites::crc_params(int noradid, uint8_t *nbytes, uint16_t *initial, uint16_t *finalxor,  uint16_t *poly, bool *inverted){
-    int aux=0;
-  switch (noradid)
-  {
-  case 44406://LUCKY-7
-    aux=1;
-    *nbytes=2;
-    *initial=0xFFFF;
-    *finalxor=0x0000;
-    *poly=0x8005;
-    switch (aux) 
-    {
-      case 1: *inverted=false;break;
-      case 2: *inverted=true;break;
-    }
-    break;
-
-  default:
-    aux=0;
-    *nbytes=0;
-    *initial=0xFFFF;
-    *finalxor=0x0000;
-    *poly=0x8005;
-    *inverted=false;
-    break;
-  }
-  return aux;
+bool Satellites::allowDistributeSatelliteNameData(char name[25]){
+    if (   strcmp(name,"Norbi")==0 
+        || strcmp(name,"ONDOSAT-OWL-1")==0 
+        || strcmp(name,"ONDOSAT-OWL-2")==0 
+        || strcmp(name,"HYPE")==0 
+        || strcmp(name,"PROMETHEUS-1")==0 
+        || strcmp(name,"ASTROCAST 0.1")==0 
+        || strcmp(name,"UPMSAT-2")==0 
+        || strcmp(name,"StratoSat-TK1")==0 
+        //|| strcmp(name,"TUSUR GO")==0 
+        || strcmp(name,"Colibri-S")==0 
+        || strcmp(name,"RTU MIREA1")==0 
+        //|| strcmp(name,"HORIZON")==0 
+        //|| strcmp(name,"VIZARD-ION")==0 
+        
+        //|| strcmp(name,"RS52SB")==0 || strcmp(name,"RS52SV")==0 || strcmp(name,"RS52SG")==0 
+        //|| strcmp(name,"RS52SD")==0 || strcmp(name,"RS52SE")==0 
+        )
+        {
+          return true;
+        } else { //Filtro de satélites
+          return false;
+        }
 }
