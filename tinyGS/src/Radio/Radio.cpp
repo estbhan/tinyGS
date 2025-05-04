@@ -705,29 +705,30 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
   /////////////////////////////
 
   if (doc.size()==1) {
-    float frequency_offset = doc[0];
-    frequency_offset += my_board_offset;
-    Log::console(PSTR("Set Frequency OffSet to %.3f Hz"), frequency_offset);
-    status.modeminfo.freqOffset = frequency_offset ;
+    //float frequency_offset = doc[0];
+    //frequency_offset += my_board_offset;
+    Log::console(PSTR("Set Frequency OffSet to %.3f Hz"), status.modeminfo.freqOffset);
+    //status.modeminfo.freqOffset = frequency_offset ;
     return 0;
   }
 
 
   if (doc.size()==0) {
-     float frequency_offset = _atof(payload, payload_len)+my_board_offset;
-    Log::console(PSTR("Set Frequency OffSet to %.3f Hz"), frequency_offset);
-    status.modeminfo.freqOffset = frequency_offset ;
+    //float frequency_offset = _atof(payload, payload_len)+my_board_offset;
+    Log::console(PSTR("Set Frequency OffSet to %.3f Hz"), status.modeminfo.freqOffset);
+    //status.modeminfo.freqOffset = frequency_offset ;
     return 0;
   } 
 
 
   if (doc.size()==3) {
-    float frequency_offset = doc[0];
-    frequency_offset += my_board_offset;
+    //float frequency_offset = doc[0];
+    //frequency_offset += my_board_offset;
     status.tle.freqTol =  doc[1];
     status.tle.refresh =  doc[2];
-    Log::console(PSTR("Set Frequency OffSet to %.3f Hz  Tol: %d Hz Refresh: %d ms"), frequency_offset,status.tle.freqTol,status.tle.refresh);
-    status.modeminfo.freqOffset = frequency_offset ;
+    //Log::console(PSTR("Set Frequency OffSet to %.3f Hz  Tol: %d Hz Refresh: %d ms"), frequency_offset,status.tle.freqTol,status.tle.refresh);
+    Log::console(PSTR("Set Frequency OffSet to %.3f Hz  Tol: %d Hz Refresh: %d ms"), status.modeminfo.freqOffset,status.tle.freqTol,status.tle.refresh);
+    //status.modeminfo.freqOffset = frequency_offset ;
     return 0;
   }
 
