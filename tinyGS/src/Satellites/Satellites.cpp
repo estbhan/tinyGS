@@ -123,6 +123,7 @@ bool Satellites::isValidSatelliteName(char name[25]){
         || strcmp(name,"RTU MIREA1")==0 
         || strcmp(name,"HORIZON")==0 
         || strcmp(name,"VIZARD-ION")==0 
+        || strcmp(name,"SAMSAT-IONOSPHERE")==0 
         )
         {
           return true;
@@ -180,9 +181,9 @@ bool Satellites::allowDistributeSatelliteNameData(char name[25]){
         || strcmp(name,"RTU MIREA1")==0 
         //|| strcmp(name,"HORIZON")==0 
         //|| strcmp(name,"VIZARD-ION")==0 
-        
         //|| strcmp(name,"RS52SB")==0 || strcmp(name,"RS52SV")==0 || strcmp(name,"RS52SG")==0 
         //|| strcmp(name,"RS52SD")==0 || strcmp(name,"RS52SE")==0 
+        || strcmp(name,"SAMSAT-IONOSPHERE")==0         
         )
         {
           return true;

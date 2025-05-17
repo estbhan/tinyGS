@@ -268,6 +268,15 @@ public:
     return freq;
   }
   ////////////////////////////////////////
+    bool getAllowDopplerCorrection() {
+     return (strcmp(allowDopplerCorrection, CB_SELECTED_STR)==0); 
+  }
+
+  ////////////////////////////////////////
+    bool getAllowSatelliteSelection() {
+     return (strcmp(allowSatelliteSelection, CB_SELECTED_STR)==0); 
+  }
+  ////////////////////////////////////////
 private:
   class GSConfigHtmlFormatProvider : public iotwebconf2::HtmlFormatProvider
   {
@@ -349,6 +358,10 @@ private:
   char freq_dev_1[TEMPLATE_LEN] = "";
   char temp_2[TEMPLATE_LEN] = "";
   char freq_dev_2[TEMPLATE_LEN] = "";
+  //Allow Doppler Correction
+  char allowDopplerCorrection[CHECKBOX_LENGTH] = "";
+  //Allow Satellite Selection
+  char allowSatelliteSelection[CHECKBOX_LENGTH] = "";
 
   iotwebconf2::NumberParameter latitudeParam = iotwebconf2::NumberParameter("Latitude (3 decimals, will be public)", "lat", latitude, COORDINATE_LENGTH, NULL, "0.000", "required min='-180' max='180' step='0.001'");
   iotwebconf2::NumberParameter longitudeParam = iotwebconf2::NumberParameter("Longitude (3 decimals, will be public)", "lng", longitude, COORDINATE_LENGTH, NULL, "-0.000", "required min='-180' max='180' step='0.001'");
@@ -381,6 +394,11 @@ private:
   iotwebconf2::NumberParameter temperature2param = iotwebconf2::NumberParameter("Temperature #2", "temp_2", temp_2, NUMBER_LEN, "50.0", "min='-180' max='180' step='0.1'");
   iotwebconf2::NumberParameter frequencyDev2param = iotwebconf2::NumberParameter("Frequency Error #2", "freq_dev_2", freq_dev_2, NUMBER_LEN, "0.000", "min='-10000' max='10000' step='1'");
 
+  iotwebconf2::ParameterGroup DopplerFlag = iotwebconf2::ParameterGroup("Doppler", "Allows to enable/disable the automatic Doppler Correction");
+  iotwebconf2::CheckboxParameter allowDopplerCorrectionparam = iotwebconf2::CheckboxParameter("Allow Doppler Correction", "allowDopplerCorrection", allowDopplerCorrection, CHECKBOX_LENGTH, true);
+
+  iotwebconf2::ParameterGroup SatelliteSelectionFlag = iotwebconf2::ParameterGroup("Satellite Selection", "Allows to select satellites for tracking");
+  iotwebconf2::CheckboxParameter allowSatelliteSelectionparam = iotwebconf2::CheckboxParameter("Allow Satellite Selection", "allowSatelliteSelection", allowSatelliteSelection, CHECKBOX_LENGTH, true);
 };
 
 #endif

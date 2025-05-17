@@ -497,7 +497,8 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     //////////////////////////////////////////////////////
     // check satellite against allowed satellites to track 
     //////////////////////////////////////////////////////
-    if (allow_satellite_filtering) {
+    //if (allow_satellite_filtering) {
+    if (ConfigManager::getInstance().getAllowSatelliteSelection()) {
       char sat[25];
       int norad_id=0;
       norad_id=(doc["NORAD"]);

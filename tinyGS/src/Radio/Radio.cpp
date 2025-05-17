@@ -36,7 +36,10 @@ bool received = false;
 bool eInterrupt = true;
 bool noisyInterrupt = false;
 
+//@estbhan
 bool allow_decode=true;
+//07/May/2025
+float Doppler_Frequency=0;
 
 Radio::Radio()
 #if CONFIG_IDF_TARGET_ESP32S3
@@ -110,11 +113,17 @@ int16_t Radio::begin()
     return -1;
   
   ModemInfo &m = status.modeminfo;
+
+  if (ConfigManager::getInstance().getAllowDopplerCorrection()) {
+    Doppler_Frequency=status.tle.freqDoppler;}
+  else {
+    Doppler_Frequency=0;}
+
   if (m.modem_mode == "LoRa")
   {
     if (m.frequency != 0) 
     {
-      CHECK_ERROR(radioHal->begin((status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000, m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
+      CHECK_ERROR(radioHal->begin((status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  Doppler_Frequency)) / 1000000, m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
       if (m.fldro == 2)
         radioHal->autoLDRO();
       else
@@ -129,7 +138,7 @@ int16_t Radio::begin()
   }
   else
   {
-    CHECK_ERROR(radioHal->beginFSK((status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000, m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
+    CHECK_ERROR(radioHal->beginFSK((status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  Doppler_Frequency)) / 1000000, m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
     CHECK_ERROR(radioHal->setDataShaping(m.OOK));
     CHECK_ERROR(radioHal->setCRC(0));
     if (m.len!=0) CHECK_ERROR(radioHal->fixedPacketLengthMode(m.len));
@@ -152,7 +161,7 @@ int16_t Radio::begin()
   radioHal->setDio0Action(setFlag);
   // start listening for LoRa packets
   //Log::console(PSTR("[%s] Starting to listen to %s"), moduleNameString, m.satellite);
-  Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,(status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000);
+  Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,(status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  Doppler_Frequency)) / 1000000);
   CHECK_ERROR(radioHal->startReceive());
   status.modeminfo.currentRssi = radioHal->getRSSI(false,true);
 
@@ -329,7 +338,13 @@ void Radio::startRx()
 void Radio::setFrequency()
 {
   // get current RSSI
-  Log::debug(PSTR("Base: %.4f Mhz Offset: %.1f Hz Doppler: %.1f Hz "),status.modeminfo.frequency, status.modeminfo.freqOffset,status.tle.freqDoppler);
+
+  if (ConfigManager::getInstance().getAllowDopplerCorrection()) {
+    Doppler_Frequency=status.tle.freqDoppler;}
+  else {
+    Doppler_Frequency=0;}
+
+  Log::debug(PSTR("Base: %.4f Mhz Offset: %.1f Hz Doppler: %.1f Hz "),status.modeminfo.frequency, status.modeminfo.freqOffset,Doppler_Frequency);
   begin();
   //radioHal->setFrequency( (status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000);
   //Log::debug(PSTR("Base: %.4f Mhz Offset: %.1f Hz Doppler: %.1f Hz --> Modem: %.4f Mhz"),status.modeminfo.frequency, status.modeminfo.freqOffset,status.tle.freqDoppler,(status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000);
@@ -504,7 +519,17 @@ uint8_t Radio::listen()
         ax25bin=new uint8_t[buffSize_pck];
         frame_error=BitCode::nrz2ax25(respFrame_fsk,buffSize_pck,ax25bin,&sizeAx25bin);
         if (frame_error!=0){
+          if (sizeAx25bin>=1){
+            Log::log_packet(ax25bin,sizeAx25bin);
+            packet_logged=true;
+          }
           Log::console(PSTR("Frame error!"));
+          sizeAx25bin=12;
+          char *texto = new char[13];
+          sprintf(texto,"Frame error!");
+          for (int i=0;i<(sizeAx25bin);i++){
+            ax25bin[i]=(char)texto[i];
+	    }
         }
         //RAW packet is replaced by the processed packet.
         respFrame=ax25bin;
@@ -588,6 +613,7 @@ uint8_t Radio::listen()
     }
 
    ///////////////////////////////////////////////////////////////////////////
+   if (ConfigManager::getInstance().getAllowSatelliteSelection()){
     if (!Satellites::allowDistributeSatelliteNameData(status.modeminfo.satellite)) 
     {
       Log::console(PSTR("Distribution of Satellite Data is disabled"));
@@ -595,6 +621,8 @@ uint8_t Radio::listen()
       startRx();
       return 5;
     }
+   }
+   
    ///////////////////////////////////////////////////////////////////////////
 
     status.lastPacketInfo.crc_error = false;

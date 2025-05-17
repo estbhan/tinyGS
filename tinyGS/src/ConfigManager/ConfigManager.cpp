@@ -132,12 +132,27 @@ ConfigManager::ConfigManager()
   groupAdvanced.addItem(&advancedConfigParam);
   addParameterGroup(&groupAdvanced);
   ////////////////////////////////////////////
+  //NEW PARAMETERS FOR THE DASHBOARD
+  ////////////////////////////////////////////
+  //Temperatur Curve
+  ////////////////////////////////////////////
   temperatureCurve.addItem(&allowFreqComparam);
   temperatureCurve.addItem(&temperature1param);
   temperatureCurve.addItem(&frequencyDev1param);
   temperatureCurve.addItem(&temperature2param);
   temperatureCurve.addItem(&frequencyDev2param);
   addParameterGroup(&temperatureCurve);
+  ////////////////////////////////////////////
+  //Doppler Correction Flag
+  ////////////////////////////////////////////
+  DopplerFlag.addItem(&allowDopplerCorrectionparam);
+  addParameterGroup(&DopplerFlag);
+  ////////////////////////////////////////////
+  //Satellite Selection
+  ////////////////////////////////////////////
+  SatelliteSelectionFlag.addItem(&allowSatelliteSelectionparam);
+  addParameterGroup(&SatelliteSelectionFlag);
+
 }
 
 void ConfigManager::handleRoot()
@@ -625,7 +640,12 @@ void ConfigManager::resetAllConfig()
   freq_dev_1[0]='\0';
   temp_2[0]='\0';
   freq_dev_2[0]='\0';
+  ////////////////////////////
+  allowDopplerCorrection[0]='\0';
+  ////////////////////////////
+  allowSatelliteSelection[0]='\0';
   saveConfig();
+
 }
 
 boolean ConfigManager::init()

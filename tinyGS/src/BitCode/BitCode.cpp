@@ -306,16 +306,18 @@ int BitCode::nrz2ax25(uint8_t *entrada, size_t sizeEntrada, uint8_t *ax25bin, si
     ax25invbin=new uint8_t[sizeEntrada];
     BitCode::nrz2nrzi(entrada,sizeEntrada,ax25hdlcbin,&sizeAx25hdlcbin);
     bitstuff=BitCode::remove_bit_stuffing(ax25hdlcbin,sizeAx25hdlcbin,ax25invbin,&sizeAx25invbin);
+	  BitCode::invierte_bytes_de_un_array(ax25invbin,sizeAx25invbin,ax25bin,sizeAx25bin);	
     if (bitstuff==0){
-		  BitCode::invierte_bytes_de_un_array(ax25invbin,sizeAx25invbin,ax25bin,sizeAx25bin);	
       return 0;	  
 	  }else{
+      /*
 	    *sizeAx25bin=12;
        texto = new char[13];
 	     sprintf(texto,"Frame error!");
        for (int i=0;i<(*sizeAx25bin);i++){
 	      ax25bin[i]=(char)texto[i];
 	    }
+      */
       return 1;
 	  }
 }
