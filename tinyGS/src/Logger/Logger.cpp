@@ -153,6 +153,7 @@ void Log::log_packet(uint8_t *packet, size_t size){
   char* ascii = new char[bytes_per_line+1];
   int j=0; int k=0;
   //Log::console(PSTR("Logging packet..."));
+  Log::console(PSTR("-----------------------------------------------------------------"));
   for (int i=0;i<size;i++){
       j=3*(i%bytes_per_line); //Index for the Hex Data
       k=(i%bytes_per_line); //Index for the ASCII Data
@@ -186,5 +187,112 @@ void Log::log_packet(uint8_t *packet, size_t size){
         cadena[0]=0;
         ascii[0]=0;
         }
+  }
+  Log::console(PSTR("-----------------------------------------------------------------"));
+}
+
+void Log::log_packet_hex(uint8_t *packet, size_t size){
+  //Print out Packet Data in Hex form
+  int bytes_per_line=32;
+  int longLinea=bytes_per_line*2;
+  char* cadena = new char[longLinea+1];
+  int j=0; int k=0;
+  //Log::console(PSTR("Logging packet..."));
+  for (int i=0;i<size;i++){
+      j=2*(i%bytes_per_line); //Index for the Hex Data
+      k=(i%bytes_per_line); //Index for the written byte in line
+      //Preparation of the Hex data line
+      sprintf(cadena + j, "%02X", packet[i]);
+      //Check for end of line or end of packet
+      if ((k==bytes_per_line-1) || i==size-1) {
+        //If end of packet fill in with spaces
+        if (i==size-1){
+          int m=0;
+          //Add spaces until complete Hex Data Linea
+          for (m=j+2;m<(longLinea);m+=2){
+            sprintf(cadena + m, "  ");
+          }
+          int n=0;
+        }
+        cadena[longLinea]=0;
+        //Final Data Line print on screen
+        Log::console(PSTR("%s"),cadena);
+        cadena[0]=0;
+        }
+  }
+  Log::console(PSTR(" "));
+}
+
+void Log::log_packet_ax25(uint8_t *packet, size_t size){
+  //Print out the ax25 header in first place and the payload as Hex/ASCII form
+  int bytes_per_line=16;
+  int longLinea=bytes_per_line*3;//Add the space after each byte
+  char* cadena = new char[longLinea+1];
+  char* ascii = new char[bytes_per_line+1];
+  int j=0; int k=0;
+ 
+  uint8_t *packet_aux;
+  packet_aux = new uint8_t[size];
+
+  if (size>=16){
+  //////////////////////////////////////////////////////////////////////////////
+  // AX.25 HEADER
+  //////////////////////////////////////////////////////////////////////////////
+  //------------- AX.25 HEADER -------------
+  //Destination Address.....: DDDDDD SSID: X
+  //Source Address..........: SSSSSS SSID: X
+  //Control.................: 0xHH
+  //PID.....................: 0xHH
+  //----------------- DATA -----------------
+  /////////////////////////////
+  //6 bytes Destination Address
+  /////////////////////////////
+  uint8_t byte_aux=0;
+  for (int i=0;i<6;i++){
+    /*
+    For the Destination Address and Source Address before getting the ASCII value
+    of each byte, the byte should be shifted one bit to the RIGHT, in this way, 
+    a bit zero is inserted by the LEFT. 
+    */
+    byte_aux=packet[i]>>1;
+    if (byte_aux>=32 and byte_aux<=127){
+      sprintf(ascii + i, "%c", byte_aux);
+    }else{
+      sprintf(ascii + i, "%c", 32);
+    }
+  }
+  Log::console(PSTR("--------------- AX.25 HEADER ---------------"));
+  Log::console(PSTR("Destination Address.....: %s     SSID: %i"),ascii,(packet[6]&(0x1E))>>1);
+  ascii[0]=0;
+  /////////////////////////////
+  //6 bytes Source Address
+  /////////////////////////////
+  for (int i=7;i<13;i++){
+    byte_aux=packet[i]>>1;
+    if (byte_aux>=32 and byte_aux<=127){
+     sprintf(ascii + i-7, "%c", byte_aux);
+    }else{
+     sprintf(ascii + i-7, "%c", 32);
+    }
+  }
+  Log::console(PSTR("Source Address..........: %s     SSID: %i"),ascii,(packet[13]&(0x1E))>>1);
+  ascii[0]=0;
+  //1 byte  Control
+  Log::console(PSTR("Control.................: 0x%02X"),packet[14]);
+  //1 byte  PID
+  Log::console(PSTR("PID.....................: 0x%02X"),packet[15]);
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  //AX.25 PAYLOAD
+  ////////////////////////////////////////////////////////////////////////////////////////
+  int counter=0;
+  for (int i=16;i<size;i++){
+    packet_aux[counter]=packet[i];
+    counter++;
+    }
+  Log::log_packet(packet_aux,size-16);
+  
+  }else{
+    Log::console(PSTR(" *** Length less than 16 bytes. Packet not printed ***"));
   }
 }
