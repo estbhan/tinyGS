@@ -235,15 +235,15 @@ void Log::log_packet_ax25(uint8_t *packet, size_t size){
   packet_aux = new uint8_t[size];
 
   if (size>=16){
-  //////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
   // AX.25 HEADER
-  //////////////////////////////////////////////////////////////////////////////
-  //------------- AX.25 HEADER -------------
-  //Destination Address.....: DDDDDD SSID: X
-  //Source Address..........: SSSSSS SSID: X
-  //Control.................: 0xHH
-  //PID.....................: 0xHH
-  //----------------- DATA -----------------
+  //////////////////////////////////////////////////////////////////////
+  //--------------------------- AX.25 HEADER ---------------------------
+  //XX XX XX XX XX XX XX | Destination Address.....: DDDDDD     SSID: XX
+  //XX XX XX XX XX XX XX | Source Address..........: SSSSSS     SSID: XX
+  //XX                   | Control.................: DEC
+  //XX                   | PID.....................: DEC
+  //--------------------------------------------------------------------
   /////////////////////////////
   //6 bytes Destination Address
   /////////////////////////////
@@ -261,8 +261,10 @@ void Log::log_packet_ax25(uint8_t *packet, size_t size){
       sprintf(ascii + i, "%c", 32);
     }
   }
-  Log::console(PSTR("--------------- AX.25 HEADER ---------------"));
-  Log::console(PSTR("Destination Address.....: %s     SSID: %i"),ascii,(packet[6]&(0x1E))>>1);
+  Log::console(PSTR("------------------------- AX.25 HEADER --------------------------"));
+  Log::console(PSTR("%02X %02X %02X %02X %02X %02X %02X | Destination Address.....: %s  SSID: %i")
+                     ,packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6]
+                     ,ascii,(packet[6]&(0x1E))>>1);
   ascii[0]=0;
   /////////////////////////////
   //6 bytes Source Address
@@ -275,12 +277,14 @@ void Log::log_packet_ax25(uint8_t *packet, size_t size){
      sprintf(ascii + i-7, "%c", 32);
     }
   }
-  Log::console(PSTR("Source Address..........: %s     SSID: %i"),ascii,(packet[13]&(0x1E))>>1);
+  Log::console(PSTR("%02X %02X %02X %02X %02X %02X %02X | Source Address..........: %s  SSID: %i")
+                     ,packet[7],packet[8],packet[9],packet[10],packet[11],packet[12],packet[13]
+                     ,ascii,(packet[13]&(0x1E))>>1);
   ascii[0]=0;
   //1 byte  Control
-  Log::console(PSTR("Control.................: 0x%02X"),packet[14]);
+  Log::console(PSTR("%02X                   | Control.................: %03i"),packet[14],packet[14]);
   //1 byte  PID
-  Log::console(PSTR("PID.....................: 0x%02X"),packet[15]);
+  Log::console(PSTR("%02X                   | PID.....................: %03i"),packet[15],packet[15]);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   //AX.25 PAYLOAD
