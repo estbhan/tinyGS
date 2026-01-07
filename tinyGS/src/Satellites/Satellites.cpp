@@ -97,7 +97,7 @@ bool Satellites::isValidSatellite(int norad){
 
 bool Satellites::isValidSatelliteName(char name[25]){
     if (   strcmp(name,"Norbi")==0 
-        //|| strcmp(name,"Norby-2")==0 
+        || strcmp(name,"Norby-2")==0 
         //|| strcmp(name,"Polytech_Universe-3")==0 
         //|| strcmp(name,"Polytech_Universe-4")==0 
         //|| strcmp(name,"Polytech_Universe-5")==0 
@@ -124,6 +124,32 @@ bool Satellites::isValidSatelliteName(char name[25]){
         || strcmp(name,"HORIZON")==0 
         || strcmp(name,"VIZARD-ION")==0 
         || strcmp(name,"SAMSAT-IONOSPHERE")==0 
+        || strcmp(name,"Geoscan-1")==0 
+        || strcmp(name,"Geoscan-2")==0 
+        || strcmp(name,"Geoscan-3")==0 
+        || strcmp(name,"Geoscan-4")==0 
+        || strcmp(name,"Geoscan-5")==0 
+        || strcmp(name,"Geoscan-6")==0 
+        || strcmp(name,"InnoSat3")==0 
+        || strcmp(name,"InnoSat16")==0 
+        || strcmp(name,"239Alferov")==0 
+        || strcmp(name,"UMKA-1")==0 
+        || strcmp(name,"INSPIRESAT-1")==0 
+        || strcmp(name,"CUTE")==0 
+        || strcmp(name,"BOTAN")==0 
+        || strcmp(name,"ARTICSAT-1")==0 
+        || strcmp(name,"LASARSAT")==0 
+        || strcmp(name,"UWE-4")==0 
+        || strcmp(name,"SPIRONE")==0 
+        || strcmp(name,"CornellLightSail")==0 //CornellLightSail
+        || strcmp(name,"Hunity")==0 //Hunity
+        || strcmp(name,"CUBEBEL-2")==0
+        || strcmp(name,"CROCUBE")==0
+        || strcmp(name,"SNUGLITE-III")==0 
+        || strcmp(name,"RSP-03")==0 
+        || strcmp(name,"LILACSAT-2")==0 
+        || strcmp(name,"GRBBETA")==0 
+        || strcmp(name,"Norby-2_FSK")==0
         )
         {
           return true;
@@ -169,6 +195,7 @@ bool Satellites::allowDistributeSatelliteData(int norad){
 
 bool Satellites::allowDistributeSatelliteNameData(char name[25]){
     if (   strcmp(name,"Norbi")==0 
+        || strcmp(name,"Norby-2")==0 
         || strcmp(name,"ONDOSAT-OWL-1")==0 
         || strcmp(name,"ONDOSAT-OWL-2")==0 
         || strcmp(name,"HYPE")==0 
@@ -181,9 +208,23 @@ bool Satellites::allowDistributeSatelliteNameData(char name[25]){
         || strcmp(name,"RTU MIREA1")==0 
         //|| strcmp(name,"HORIZON")==0 
         //|| strcmp(name,"VIZARD-ION")==0 
-        //|| strcmp(name,"RS52SB")==0 || strcmp(name,"RS52SV")==0 || strcmp(name,"RS52SG")==0 
-        //|| strcmp(name,"RS52SD")==0 || strcmp(name,"RS52SE")==0 
+        //|| strcmp(name,"RS52SB")==0 || strcmp(name,"RS52SD")==0 
+        //|| strcmp(name,"RS52SE")==0 || strcmp(name,"RS52SG")==0
+        //|| strcmp(name,"RS52SV")==0  
         || strcmp(name,"SAMSAT-IONOSPHERE")==0         
+        || strcmp(name,"239Alferov")==0 
+        || strcmp(name,"UMKA-1")==0 
+        //|| strcmp(name,"INSPIRESAT-1")==0 
+        //|| strcmp(name,"CUTE")==0 
+        || strcmp(name,"BOTAN")==0 
+        || strcmp(name,"ARTICSAT-1")==0 
+        || strcmp(name,"LASARSAT")==0 
+        || strcmp(name,"UWE-4")==0 
+        || strcmp(name,"SPIRONE")==0 
+        || strcmp(name,"CornellLightSail")==0 //CornellLightSail
+        || strcmp(name,"Hunity")==0 //Hunity
+        || strcmp(name,"CUBEBEL-2")==0
+        || strcmp(name,"Norby-2_FSK")==0
         )
         {
           return true;

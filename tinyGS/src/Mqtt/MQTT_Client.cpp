@@ -29,7 +29,6 @@
 #include <esp_ota_ops.h>
 ////////////////////////////////////////////////////////////
 #include "../Satellites/Satellites.h"
-bool allow_satellite_filtering=true;
 ////////////////////////////////////////////////////////////
 
 
@@ -469,6 +468,8 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     }
 
     ConfigManager::getInstance().setModemStartup(buff);
+
+    
   }
 
   if (!strcmp(command, commandBegine))
@@ -497,7 +498,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     //////////////////////////////////////////////////////
     // check satellite against allowed satellites to track 
     //////////////////////////////////////////////////////
-    //if (allow_satellite_filtering) {
+
     if (ConfigManager::getInstance().getAllowSatelliteSelection()) {
       char sat[25];
       int norad_id=0;
@@ -571,7 +572,9 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       else
         status.modeminfo.filter[i] = 0;
     }
-     // sat tle
+    ////////////////////////////////////////////////////////////////////
+    // sat tle
+    ////////////////////////////////////////////////////////////////////
     if (doc.containsKey("tle") && doc["tle"].is<const char*>()) {
     const char* base64Tle = doc["tle"].as<const char*>();
     size_t inputLen = strlen(base64Tle);
@@ -583,7 +586,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     size_t maxDecodedLength = (inputLen * 3 + 3) / 4;
 
     if(maxDecodedLength > maxTleSize){
- //     Serial.println("Error: Decoded TLE too large for buffer.");
+    // Serial.println("Error: Decoded TLE too large for buffer.");
       return;
     }
 
@@ -591,7 +594,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
 
     
     if (ret == 0) {
-      // Decoding successful, 'm_tle' now contains the decoded data, and 'outputLen' is the length.
+     // Decoding successful, 'm_tle' now contains the decoded data, and 'outputLen' is the length.
      // Serial.print("Base64 decoded. Length: ");
      // Serial.println(outputLen);
 
@@ -607,6 +610,11 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       }
       Serial.println();
      */
+      Log::console(PSTR("TLE received!"));
+      //if (base64Tle != NULL){
+      //  Log::console(PSTR("TLE: %s"),base64Tle);
+      //}
+      //Log::log_packet(m.tle,outputLen);
     } else {
      // Serial.print("Base64 decode error: ");
      // Serial.println(ret);
@@ -616,6 +624,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     m.tle[0]= 0;
     status.tle.freqDoppler = 0;
   }
+  ////////////////////////////////////////////////////////////////////
 
   radio.begin();
 //    radio.currentRssi();
