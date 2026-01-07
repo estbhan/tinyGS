@@ -480,7 +480,9 @@ uint8_t Radio::listen()
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
     // read optional data
-    Log::console(PSTR("Packet (%u bytes):"), respLen);
+    Log::console(PSTR("Raw Packet (%u bytes):"), respLen);
+    Log::log_packet_hex(respFrame,respLen);
+    /* 
     uint16_t buffSize = respLen * 2 + 1;
     if (buffSize > 255)
       buffSize = 255;
@@ -492,6 +494,7 @@ uint8_t Radio::listen()
         Log::console(PSTR("%s"), byteStr); // print before the buffer is going to loop back
     }
     delete[] byteStr;
+    */
 
     bool packet_logged=false;
     if (allow_decode){
@@ -499,7 +502,10 @@ uint8_t Radio::listen()
       if (modo=="FSK"){
       int bytes_sincro=0;
       int frame_error=0;
-      if (status.modeminfo.framing==1){ //framing=1 -> AX.25 Frame
+      if (status.modeminfo.framing==1  //framing=1 -> NRZS -> AX.25 Frame
+       || status.modeminfo.framing==3  //framing=3 -> Scrambled(x17x12) -> NRZS -> AX.25                       
+         ) 
+        {
         Log::console(PSTR("Processing AX.25 frame..."));
         // Add Synch Frame Word to the received data 
         for (int i=0;i<sizeof(status.modeminfo.fsw);i++){
@@ -517,19 +523,21 @@ uint8_t Radio::listen()
         uint8_t *ax25bin;
         size_t sizeAx25bin=0;
         ax25bin=new uint8_t[buffSize_pck];
-        frame_error=BitCode::nrz2ax25(respFrame_fsk,buffSize_pck,ax25bin,&sizeAx25bin);
+        frame_error=BitCode::nrz2ax25(respFrame_fsk,buffSize_pck,ax25bin,&sizeAx25bin,status.modeminfo.framing);
         if (frame_error!=0){
           if (sizeAx25bin>=1){
             Log::log_packet(ax25bin,sizeAx25bin);
-            packet_logged=true;
+          }else{
+            Log::console(PSTR("No data found in packet."));
           }
+          packet_logged=true;
           Log::console(PSTR("Frame error!"));
           sizeAx25bin=12;
           char *texto = new char[13];
           sprintf(texto,"Frame error!");
           for (int i=0;i<(sizeAx25bin);i++){
             ax25bin[i]=(char)texto[i];
-	    }
+	        }
         }
         //RAW packet is replaced by the processed packet.
         respFrame=ax25bin;
@@ -544,7 +552,7 @@ uint8_t Radio::listen()
         respFrame=salida;
       }
 
-      if (frame_error==0 && status.modeminfo.crc_by_sw){
+      if (frame_error==0 && status.modeminfo.crc_by_sw && respLen>=4){
         size_t newsize=respLen-status.modeminfo.crc_nbytes;
         RadioLibCRCInstance.size = status.modeminfo.crc_nbytes*8;
         RadioLibCRCInstance.poly = status.modeminfo.crc_poly;
@@ -569,22 +577,34 @@ uint8_t Radio::listen()
           crcfield=msb*256+lsb;
         }
         Log::console(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
-        Log::log_packet(respFrame,respLen);
+        if ((  status.modeminfo.framing==1  //framing=1 -> NRZS -> AX.25 Frame
+            || status.modeminfo.framing==3  //framing=3 -> Scrambled(x17x12) -> NRZS -> AX.25  
+            ) && respLen>=16
+           ) {
+             Log::log_packet_ax25(respFrame,respLen);
+           }else{
+             if (respLen>0){ 
+                Log::log_packet(respFrame,respLen);
+             }
+           }
         packet_logged=true;
         if (fcs!=crcfield){
             Log::console(PSTR("Error_CRC"));
-            char *cad=new char[10];
-            respLen=10;
+            respLen=9;
+            //respLen=10;
+            char *cad=new char[respLen];
+            //char *cad=new char[10];
             sprintf(cad,"Error_CRC");
-            for (int i=0;i<10;i++){
+            for (int i=0;i<respLen;i++){//Do not send the last /0 string ending character
+            //for (int i=0;i<10;i++){
               respFrame[i]=(char)cad[i];
             }
           }          
-        }
+        }else{Log::console(PSTR("CRC Check not performed"));}
       }
     }
 
-    if (!packet_logged){Log::log_packet(respFrame,respLen);}
+    if (!packet_logged && respLen>0){Log::log_packet(respFrame,respLen);}
 
     // if Filter enabled filter the received packet
     if (status.modeminfo.filter[0] != 0)
@@ -730,12 +750,18 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
   deserializeJson(doc, payload, payload_len);
   /////////////////////////////
   float my_board_offset=0; //My board has -4400 Hz error.
+  char dopcor[40]="";
+
+  strcpy(dopcor,"--- Doppler Disabled ---");
+  if (ConfigManager::getInstance().getAllowDopplerCorrection()){
+    strcpy(dopcor,"+++ Doppler Enabled +++");
+  }
   /////////////////////////////
 
   if (doc.size()==1) {
     //float frequency_offset = doc[0];
     //frequency_offset += my_board_offset;
-    Log::console(PSTR("Set Frequency OffSet to %.3f Hz"), status.modeminfo.freqOffset);
+    Log::console(PSTR("Set Frequency OffSet to %.3f Hz. %s"), status.modeminfo.freqOffset, dopcor);
     //status.modeminfo.freqOffset = frequency_offset ;
     return 0;
   }
@@ -743,7 +769,7 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
 
   if (doc.size()==0) {
     //float frequency_offset = _atof(payload, payload_len)+my_board_offset;
-    Log::console(PSTR("Set Frequency OffSet to %.3f Hz"), status.modeminfo.freqOffset);
+    Log::console(PSTR("Set Frequency OffSet to %.3f Hz. %s"), status.modeminfo.freqOffset, dopcor);
     //status.modeminfo.freqOffset = frequency_offset ;
     return 0;
   } 
@@ -755,7 +781,7 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
     status.tle.freqTol =  doc[1];
     status.tle.refresh =  doc[2];
     //Log::console(PSTR("Set Frequency OffSet to %.3f Hz  Tol: %d Hz Refresh: %d ms"), frequency_offset,status.tle.freqTol,status.tle.refresh);
-    Log::console(PSTR("Set Frequency OffSet to %.3f Hz  Tol: %d Hz Refresh: %d ms"), status.modeminfo.freqOffset,status.tle.freqTol,status.tle.refresh);
+    Log::console(PSTR("Set Frequency OffSet to %.3f Hz  Tol: %d Hz Refresh: %d ms. %s"), status.modeminfo.freqOffset,status.tle.freqTol,status.tle.refresh, dopcor);
     //status.modeminfo.freqOffset = frequency_offset ;
     return 0;
   }
