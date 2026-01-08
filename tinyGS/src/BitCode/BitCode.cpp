@@ -148,7 +148,8 @@ int BitCode::remove_bit_stuffing (uint8_t *entrada, size_t sizeEntrada, uint8_t 
   bit2=read_bit_from_byte(byte_recibido,8);
   bit3=read_bit_from_byte(byte_recibido,7);
   j=6;
-  for (int i=0;i<sizeEntrada;i++){
+  int i=0;
+  while(i<sizeEntrada){
     byte_recibido=entrada[i];
     while (j>0){
       bit1=bit2;
@@ -220,6 +221,7 @@ int BitCode::remove_bit_stuffing (uint8_t *entrada, size_t sizeEntrada, uint8_t 
       j--;
     }
     j=8;
+    i++;
   }
   if (flag_encontrado && !error_de_trama){
     return 0;}
