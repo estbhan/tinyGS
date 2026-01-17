@@ -132,6 +132,19 @@ ConfigManager::ConfigManager()
   groupAdvanced.addItem(&modemParam);
   groupAdvanced.addItem(&advancedConfigParam);
   addParameterGroup(&groupAdvanced);
+
+  ////////////////////////////////////////////
+  //NEW PARAMETERS FOR THE DASHBOARD
+  ////////////////////////////////////////////
+  //Temperatur Curve
+  ////////////////////////////////////////////
+  temperatureCurve.addItem(&allowFreqComparam);
+  temperatureCurve.addItem(&temperature1param);
+  temperatureCurve.addItem(&frequencyDev1param);
+  temperatureCurve.addItem(&temperature2param);
+  temperatureCurve.addItem(&frequencyDev2param);
+  addParameterGroup(&temperatureCurve);
+    
 }
 
 void ConfigManager::handleRoot()

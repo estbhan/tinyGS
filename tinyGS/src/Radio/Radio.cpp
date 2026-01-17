@@ -28,6 +28,9 @@
 //@estbhan
 //04/08/2023
 #include "../BitCode/BitCode.h"
+////////////////////////////////////////////////////////////
+#include "../Satellites/Satellites.h"
+////////////////////////////////////////////////////////////
 
 #define CHECK_ERROR(errCode) if (errCode != RADIOLIB_ERR_NONE) { Log::console(PSTR("Radio failed, code %d\n Check that the configuration is valid for your board"), errCode);status.radio_error=errCode; return errCode; }
 
@@ -642,6 +645,19 @@ uint8_t Radio::listen()
         return 5;
       }
     }
+
+   ///////////////////////////////////////////////////////////////////////////
+   //if (ConfigManager::getInstance().getAllowSatelliteSelection()){
+    if (!Satellites::allowDistributeSatelliteNameData(status.modeminfo.satellite)) 
+    {
+      Log::console(PSTR("Distribution of Satellite Data is disabled"));
+      delete[] respFrame;
+      startRx();
+      return 5;
+    }
+   //}
+   ///////////////////////////////////////////////////////////////////////////
+
 
 //    status.lastPacketInfo.crc_error = false;
     String encoded = base64::encode(respFrame, respLen);

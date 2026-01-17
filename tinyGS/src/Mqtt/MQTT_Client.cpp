@@ -27,7 +27,9 @@
 #include "../OTA/OTA.h"
 #include "../Logger/Logger.h"
 #include <esp_ota_ops.h>
-
+////////////////////////////////////////////////////////////
+#include "../Satellites/Satellites.h"
+////////////////////////////////////////////////////////////
 
 MQTT_Client::MQTT_Client()
     : PubSubClient(espClient)
@@ -485,6 +487,8 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       return;
     }
 
+    status.tle.freqDoppler = 0; //Removes any freqDoppler value from a previous config.
+
     ConfigManager::getInstance().setModemStartup(buff);
   }
 
@@ -511,6 +515,24 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       return;
     }
  
+    //////////////////////////////////////////////////////
+    // check satellite against allowed satellites to track 
+    //////////////////////////////////////////////////////
+
+    //if (ConfigManager::getInstance().getAllowSatelliteSelection()) {
+      char sat[25];
+      int norad_id=0;
+      norad_id=(doc["NORAD"]);
+      strcpy(sat, doc["sat"].as<char *>());
+      Log::console(PSTR("Checking satellite %s Norad ID: %i"),sat, norad_id);
+      //if (!Satellites::isValidSatellite(doc["NORAD"]))
+      if (!Satellites::allowTrackSatelliteName(sat))
+      {
+        Log::console(PSTR("Satelite is not in the list. Listening not started."));
+        return;
+      }
+    //}
+
     // disable interrup to avoid allocating received packet to the wrong satellite.
     radio.clearPacketReceivedAction();
     radio.disableInterrupt();
@@ -577,6 +599,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
         status.modeminfo.filter[i] = 0;
     }
      // sat tle
+    status.tle.freqDoppler = 0; //Removes any freqDoppler value from a previous config.
     if (doc.containsKey("tle") && doc["tle"].is<const char*>()) {
     const char* base64Tle = doc["tle"].as<const char*>();
     size_t inputLen = strlen(base64Tle);
@@ -596,7 +619,8 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
 
     
     if (ret == 0) {
-      // Decoding successful, 'm_tle' now contains the decoded data, and 'outputLen' is the length.
+      Log::console(PSTR("TLE Received!"));
+     // Decoding successful, 'm_tle' now contains the decoded data, and 'outputLen' is the length.
      // Serial.print("Base64 decoded. Length: ");
      // Serial.println(outputLen);
 
@@ -674,14 +698,14 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     result = 0;
   }
 
+  //Frequency Offset driven by temperature --> tinygs.ino
   // Set frequency offset
-  if (!strcmp(command, commandSetFreqOffset))
-  {
-    if (length < 1)
-      return;
-    result = radio.remoteSetFreqOffset((char *)payload, length);
-  
-  }
+  //if (!strcmp(command, commandSetFreqOffset))
+  //{
+  // if (length < 1)
+  //    return;
+  // result = radio.remoteSetFreqOffset((char *)payload, length);
+  //}
 
   if (!strcmp(command, commandSetAdvParameters))
   {
