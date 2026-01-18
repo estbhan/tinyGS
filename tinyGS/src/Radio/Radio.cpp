@@ -112,7 +112,7 @@ int16_t Radio::begin()
     return -1;
   
   ModemInfo &m = status.modeminfo;
-  if (m.modem_mode == "LoRa")
+  if (strcmp(m.modem_mode, "LoRa") == 0)
   {
     if (m.frequency != 0) 
     {
@@ -435,7 +435,7 @@ uint8_t Radio::listen()
       newPacketInfo.snr == status.lastPacketInfo.snr &&
       newPacketInfo.frequencyerror == status.lastPacketInfo.frequencyerror)
   {
-    Log::console(PSTR("Interrupt triggered but no new data available. Check wiring and electrical interferences."));
+    Log::consoleAsync(PSTR("Interrupt triggered but no new data available. Check wiring and electrical interferences."));
     delete[] respFrame;
     delete[] respFrame_raw;
     startRx();
@@ -450,57 +450,44 @@ uint8_t Radio::listen()
   if (currenttime < 0)
   {
     Log::error(PSTR("Failed to obtain time"));
-    status.lastPacketInfo.time = "";
+    status.lastPacketInfo.time[0] = '\0';
   }
   else
   {
     // store time of the last packet received:
     timeinfo = localtime(&currenttime);
-    String thisTime = "";
-    if (timeinfo->tm_hour < 10)
-    {
-      thisTime = thisTime + " ";
-    } // add leading space if required
-    thisTime = String(timeinfo->tm_hour) + ":";
-    if (timeinfo->tm_min < 10)
-    {
-      thisTime = thisTime + "0";
-    } // add leading zero if required
-    thisTime = thisTime + String(timeinfo->tm_min) + ":";
-    if (timeinfo->tm_sec < 10)
-    {
-      thisTime = thisTime + "0";
-    } // add leading zero if required
-    thisTime = thisTime + String(timeinfo->tm_sec);
-
-    status.lastPacketInfo.time = thisTime;
+    char timeBuffer[12];
+    snprintf(timeBuffer, sizeof(timeBuffer), "%2d:%02d:%02d", 
+             timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+    strncpy(status.lastPacketInfo.time, timeBuffer, sizeof(status.lastPacketInfo.time) - 1);
+    status.lastPacketInfo.time[sizeof(status.lastPacketInfo.time) - 1] = '\0';
   }
 
   status.lastPacketInfo.rssi = newPacketInfo.rssi;
   status.lastPacketInfo.snr = newPacketInfo.snr;
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
-  // print RSSI (Received Signal Strength Indicator)
-  Log::console(PSTR("[%s] RSSI:\t\t%f dBm\n[%s] SNR:\t\t%f dB\n[%s] Frequency error:\t%f Hz"),
+  // print RSSI (Received Signal Strength Indicator) - use async to avoid blocking
+  Log::consoleAsync(PSTR("[%s] RSSI:\t\t%f dBm\n[%s] SNR:\t\t%f dB\n[%s] Frequency error:\t%f Hz"),
    moduleNameString, status.lastPacketInfo.rssi, 
    moduleNameString, status.lastPacketInfo.snr, 
    moduleNameString, status.lastPacketInfo.frequencyerror);
 
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
-    // read optional data
-    Log::console(PSTR("Packet (%u bytes):"), respLen);
-    uint16_t buffSize = respLen * 2 + 1;
-    if (buffSize > 255)
-      buffSize = 255;
-    char *byteStr = new char[buffSize];
-    for (int i = 0; i < respLen; i++)
-    {
-      sprintf(byteStr + i * 2 % (buffSize - 1), "%02x", respFrame[i]);
-      if (i * 2 % buffSize == buffSize - 3 || i == respLen - 1)
-        Log::console(PSTR("%s"), byteStr); // print before the buffer is going to loop back
-    }
-    delete[] byteStr;
+    // read optional data - use async logging to avoid blocking
+    Log::consoleAsync(PSTR("Packet (%u bytes):"), respLen);
+    // uint16_t buffSize = respLen * 2 + 1;
+    // if (buffSize > 255)
+    //   buffSize = 255;
+    // char *byteStr = new char[buffSize];
+    // for (int i = 0; i < respLen; i++)
+    // {
+    //   sprintf(byteStr + i * 2 % (buffSize - 1), "%02x", respFrame[i]);
+    //   if (i * 2 % buffSize == buffSize - 3 || i == respLen - 1)
+    //     Log::consoleAsync(PSTR("%s"), byteStr); // async logging for hex dump
+    // }
+    // delete[] byteStr;
 
 
     bool packet_logged=false;
@@ -513,7 +500,7 @@ uint8_t Radio::listen()
        || status.modeminfo.framing==3  //framing=3 -> Scrambled(x17x12) -> NRZS -> AX.25                       
          ) 
         {
-        Log::console(PSTR("Processing AX.25 frame..."));
+        Log::consoleAsync(PSTR("Processing AX.25 frame..."));
         // Add Synch Frame Word to the received data 
         for (int i=0;i<sizeof(status.modeminfo.fsw);i++){
           if (status.modeminfo.fsw[i]!=0){bytes_sincro++;}
@@ -536,10 +523,10 @@ uint8_t Radio::listen()
           if (sizeAx25bin>=1){
             Log::log_packet(ax25bin,sizeAx25bin);
           }else{
-            Log::console(PSTR("No data found in packet."));
+            Log::consoleAsync(PSTR("No data found in packet."));
           }
           packet_logged=true;
-          Log::console(PSTR("Frame error!"));
+          Log::consoleAsync(PSTR("Frame error!"));
           sizeAx25bin=12;
           char *texto = new char[13];
           sprintf(texto,"Frame error!");
@@ -561,6 +548,7 @@ uint8_t Radio::listen()
         size_t sizeSalida=0;              
         salida=new uint8_t[respLen];
         BitCode::pn9(respFrame,respLen,salida);
+        delete[] respFrame; // Clean up original respFrame before reassignment
         respFrame=salida;
       }
       board_t board;
@@ -590,7 +578,7 @@ uint8_t Radio::listen()
         }else{
           crcfield=msb*256+lsb;
         }
-        Log::console(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
+        Log::consoleAsync(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
         if ((  status.modeminfo.framing==1  //framing=1 -> NRZS -> AX.25 Frame
             || status.modeminfo.framing==3  //framing=3 -> Scrambled(x17x12) -> NRZS -> AX.25  
             ) && respLen>=16
@@ -604,7 +592,7 @@ uint8_t Radio::listen()
         packet_logged=true;
         if (fcs!=crcfield){
             status.lastPacketInfo.crc_error = true;
-            Log::console(PSTR("Error_CRC"));
+            Log::consoleAsync(PSTR("Error_CRC"));
             char *cad=new char[10];
             respLen=9;
             sprintf(cad,"Error_CRC");
@@ -613,7 +601,7 @@ uint8_t Radio::listen()
             }
             delete[] cad; // Clean up cad
           }          
-        }else{Log::console(PSTR("CRC Check not performed"));}
+        }else{Log::consoleAsync(PSTR("CRC Check not performed"));}
       }
     }
 
@@ -638,7 +626,7 @@ uint8_t Radio::listen()
 
       if (filter_flag)
       {
-        Log::console(PSTR("Filter enabled, doesn't looks like the expected satellite packet"));
+        Log::consoleAsync(PSTR("Filter enabled, doesn't looks like the expected satellite packet"));
         delete[] respFrame;
         delete[] respFrame_raw;
         startRx();
@@ -678,7 +666,7 @@ uint8_t Radio::listen()
     }
     else
     {
-      Log::console(PSTR("Filter enabled, Error CRC filtered"));
+      Log::consoleAsync(PSTR("Filter enabled, Error CRC filtered"));
       delete[] respFrame;
       delete[] respFrame_raw;
       startRx();
@@ -705,19 +693,19 @@ uint8_t Radio::listen()
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[%s] CRC error! Data cannot be retrieved"), moduleNameString);
+    Log::consoleAsync(PSTR("[%s] CRC error! Data cannot be retrieved"), moduleNameString);
     return 2;
   }
   else if (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[%S] Damaged header! Data cannot be retrieved"), moduleNameString);
+    Log::consoleAsync(PSTR("[%S] Damaged header! Data cannot be retrieved"), moduleNameString);
     return 2;
   }
   else
   {
     // some other error occurred
-    Log::console(PSTR("[%s] Failed, code %d"), moduleNameString, state);
+    Log::consoleAsync(PSTR("[%s] Failed, code %d"), moduleNameString, state);
     return 3;
   }
 }
@@ -767,8 +755,7 @@ int16_t Radio::remote_freq(char *payload, size_t payload_len)
 
 int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
 {
-
-  DynamicJsonDocument doc(90);
+  StaticJsonDocument<96> doc;
   deserializeJson(doc, payload, payload_len);
 
   if (doc.size()==1) {
@@ -826,7 +813,7 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
 
 int16_t Radio::remote_begin_lora(char *payload, size_t payload_len)
 {
-  DynamicJsonDocument doc(256);
+  StaticJsonDocument<256> doc;
   deserializeJson(doc, payload, payload_len);
   float freq = doc[0];
   float bw = doc[1];
@@ -870,7 +857,7 @@ int16_t Radio::remote_begin_lora(char *payload, size_t payload_len)
   readState(state);
   if (state == RADIOLIB_ERR_NONE)
   {
-    status.modeminfo.modem_mode = "LoRa";
+    strcpy(status.modeminfo.modem_mode, "LoRa");
     status.modeminfo.frequency = freq;
     status.modeminfo.bw = bw;
     status.modeminfo.power = power;
@@ -884,7 +871,7 @@ int16_t Radio::remote_begin_lora(char *payload, size_t payload_len)
 
 int16_t Radio::remote_begin_fsk(char *payload, size_t payload_len)
 {
-  DynamicJsonDocument doc(256);
+  StaticJsonDocument<256> doc;
   deserializeJson(doc, payload, payload_len);
   float freq = doc[0];
   float br = doc[1];
@@ -932,7 +919,7 @@ int16_t Radio::remote_begin_fsk(char *payload, size_t payload_len)
 
   if (state == RADIOLIB_ERR_NONE)
   {
-    status.modeminfo.modem_mode = "FSK";
+    strcpy(status.modeminfo.modem_mode, "FSK");
     status.modeminfo.frequency = freq;
     status.modeminfo.bw = rxBw;
     status.modeminfo.power = power;

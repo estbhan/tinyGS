@@ -282,7 +282,7 @@ void ConfigManager::handleDashboard()
   s += "<tr><td>Frequency </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
   s += "<tr><td>Freq. Offset </td><td>" + String(status.modeminfo.freqOffset) + "</td></tr>";
 
-  if (status.modeminfo.modem_mode == "LoRa")
+  if (strcmp(status.modeminfo.modem_mode, "LoRa") == 0)
   {
     s += "<tr><td>Spreading Factor </td><td>" + String(status.modeminfo.sf) + "</td></tr>";
     s += "<tr><td>Coding Rate </td><td>" + String(status.modeminfo.cr) + "</td></tr>";
@@ -369,39 +369,39 @@ void ConfigManager::handleRefreshConsole()
   String svalue = server.arg("c1");
   if (svalue.length())
   {
-    Log::console(PSTR("COMMAND: %s"), svalue.c_str());
+    Log::consoleAsync(PSTR("COMMAND: %s"), svalue.c_str());
 
     if (strcmp(svalue.c_str(), "!p") == 0)
     {
       if (!getAllowTx())
       {
-        Log::console(PSTR("Radio transmission is not allowed by config! Check your config on the web panel and make sure transmission is allowed by local regulations"));
+        Log::consoleAsync(PSTR("Radio transmission is not allowed by config! Check your config on the web panel and make sure transmission is allowed by local regulations"));
       }
       else
       {
         static long lastTestPacketTime = 0;
         if (millis() - lastTestPacketTime < 20 * 1000)
         {
-          Log::console(PSTR("Please wait a few seconds to send another test packet."));
+          Log::consoleAsync(PSTR("Please wait a few seconds to send another test packet."));
         }
         else
         {
           Radio &radio = Radio::getInstance();
           radio.sendTestPacket();
           lastTestPacketTime = millis();
-          Log::console(PSTR("Sending test packet to nearby stations!"));
+          Log::consoleAsync(PSTR("Sending test packet to nearby stations!"));
         }
       }
     } else if (strcmp (svalue.c_str (), "!w") == 0) {
-        Log::console (PSTR ("Getting weblogin"));
+        Log::consoleAsync (PSTR ("Getting weblogin"));
         askForWeblogin = true;
     } else if (strcmp (svalue.c_str (), "!e") == 0) {
         resetAllConfig ();
         ESP.restart ();
     } else if (strcmp (svalue.c_str (), "!o") == 0) {
-        Log::console ("OTP Code: %s", mqttCredentials.getOTPCode ());
+        Log::consoleAsync ("OTP Code: %s", mqttCredentials.getOTPCode ());
     } else {
-      Log::console(PSTR("%s"), F("Command still not supported in web serial console!"));
+      Log::consoleAsync(PSTR("%s"), F("Command still not supported in web serial console!"));
     }
   }
 
@@ -479,7 +479,7 @@ void ConfigManager::handleRefreshWorldmap()
   // modem configuration (for modemconfig id table data)
   data_string += String(status.modeminfo.modem_mode) + "," +
                  String(status.modeminfo.frequency) + "," + String(status.modeminfo.freqOffset) + ",";
-  if (status.modeminfo.modem_mode == "LoRa")
+  if (strcmp(status.modeminfo.modem_mode, "LoRa") == 0)
   {
     data_string += String(status.modeminfo.sf) + ",";
     data_string += String(status.modeminfo.cr) + ",";
@@ -880,8 +880,7 @@ void ConfigManager::parseAdvancedConf()
   if (!strlen(advancedConfig))
     return;
 
-  size_t size = 512;
-  DynamicJsonDocument doc(size);
+  StaticJsonDocument<512> doc;
   deserializeJson(doc, (const char *)advancedConfig);
 
   if (doc.containsKey(F("dmode")))
@@ -923,11 +922,13 @@ void ConfigManager::parseModemStartup()
   }
 
   ModemInfo &m = status.modeminfo;
-  m.modem_mode = doc["mode"].as<String>();
+  const char* mode = doc["mode"].as<const char*>();
+  strncpy(m.modem_mode, mode ? mode : "", sizeof(m.modem_mode) - 1);
+  m.modem_mode[sizeof(m.modem_mode) - 1] = '\0';
   strcpy(m.satellite, doc["sat"].as<char *>());
   m.NORAD = doc["NORAD"];
 
-  if (m.modem_mode == "LoRa")
+  if (strcmp(m.modem_mode, "LoRa") == 0)
   {
     m.frequency = doc["freq"];
     m.bw = doc["bw"];
@@ -989,8 +990,7 @@ void ConfigManager::parseModemStartup()
 
 bool ConfigManager::parseBoardTemplate(board_t &board)
 {
-  size_t size = 512;
-  DynamicJsonDocument doc(size);
+  StaticJsonDocument<512> doc;
   DeserializationError error = deserializeJson(doc, ConfigManager::getInstance().getBoardTemplate());
 
   if (error.code() != DeserializationError::Ok || !doc.containsKey("radio"))

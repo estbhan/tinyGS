@@ -102,7 +102,7 @@ float f2=-5200.0;
 float frequency_deviation_limit=10000;//In absolute value
 //////////////////////////////////////////////
 
-#if  RADIOLIB_VERSION_MAJOR != (0x07) || RADIOLIB_VERSION_MINOR != (0x04) || RADIOLIB_VERSION_PATCH != (0x00) || RADIOLIB_VERSION_EXTRA != (0x00)
+#if  RADIOLIB_VERSION_MAJOR != (0x07) || RADIOLIB_VERSION_MINOR != (0x05) || RADIOLIB_VERSION_PATCH != (0x00) || RADIOLIB_VERSION_EXTRA != (0x00)
 #error "You are not using the correct version of RadioLib please copy TinyGS/lib/RadioLib on Arduino/libraries"
 #endif
 
@@ -163,6 +163,10 @@ void setup()
 #endif
   Serial.begin(115200);
   delay (100);
+  
+  // Initialize async logging early
+  Log::initAsync();
+  
   improvWiFi.setVersion (status.version);
   Log::console (PSTR ("TinyGS Version %d - %s"), status.version, status.git_version);
   Log::console(PSTR("Chip  %s - %d"),  ESP.getChipModel(),ESP.getChipRevision());
@@ -288,7 +292,7 @@ bool mqttAutoconf () {
     }
     return false;
 }
-unsigned long lastTleRefresh = 0;
+unsigned long lastTleRefresh = millis();
 
 void loop() {  
     configManager.doLoop ();
