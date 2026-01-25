@@ -343,6 +343,7 @@ void Log::log_packet_hex(uint8_t *packet, size_t size){
         }
   }
   Log::consoleAsync(PSTR(" "));
+  delete[] cadena;
 }
 
 void Log::log_packet_ax25(uint8_t *packet, size_t size){
@@ -421,4 +422,7 @@ void Log::log_packet_ax25(uint8_t *packet, size_t size){
   }else{
     Log::consoleAsync(PSTR(" *** Length less than 16 bytes. Packet not printed ***"));
   }
+  delete[] cadena;
+  delete[] ascii;
+
 }
