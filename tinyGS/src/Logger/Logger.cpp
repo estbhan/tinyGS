@@ -275,7 +275,7 @@ void Log::log_packet(uint8_t *packet, size_t size){
   char* cadena = new char[longLinea+1];
   char* ascii = new char[bytes_per_line+1];
   int j=0; int k=0;
-  Log::consoleAsync(PSTR("-----------------------------------------------------------------"));
+  Log::console(PSTR("-----------------------------------------------------------------"));
   for (int i=0;i<size;i++){
       j=3*(i%bytes_per_line); //Index for the Hex Data
       k=(i%bytes_per_line); //Index for the ASCII Data
@@ -305,12 +305,12 @@ void Log::log_packet(uint8_t *packet, size_t size){
         cadena[longLinea]=0;
         ascii[bytes_per_line]=0;
         //Final Data/ASCII Line print on screen
-        Log::consoleAsync(PSTR("%s %s"),cadena,ascii);
+        Log::console(PSTR("%s %s"),cadena,ascii);
         cadena[0]=0;
         ascii[0]=0;
         }
   }
-  Log::consoleAsync(PSTR("-----------------------------------------------------------------"));
+  Log::console(PSTR("-----------------------------------------------------------------"));
 }
 
 void Log::log_packet_hex(uint8_t *packet, size_t size){
@@ -338,11 +338,11 @@ void Log::log_packet_hex(uint8_t *packet, size_t size){
         }
         cadena[longLinea]=0;
         //Final Data Line print on screen
-        Log::consoleAsync(PSTR("%s"),cadena);
+        Log::console(PSTR("%s"),cadena);
         cadena[0]=0;
         }
   }
-  Log::consoleAsync(PSTR(" "));
+  Log::console(PSTR(" "));
   delete[] cadena;
 }
 
@@ -384,8 +384,8 @@ void Log::log_packet_ax25(uint8_t *packet, size_t size){
       sprintf(ascii + i, "%c", 32);
     }
   }
-  Log::consoleAsync(PSTR("------------------------- AX.25 HEADER --------------------------"));
-  Log::consoleAsync(PSTR("%02X %02X %02X %02X %02X %02X %02X | Destination Address.....: %s  SSID: %i")
+  Log::console(PSTR("------------------------- AX.25 HEADER --------------------------"));
+  Log::console(PSTR("%02X %02X %02X %02X %02X %02X %02X | Destination Address.....: %s  SSID: %i")
                      ,packet[0],packet[1],packet[2],packet[3],packet[4],packet[5],packet[6]
                      ,ascii,(packet[6]&(0x1E))>>1);
   ascii[0]=0;
@@ -400,14 +400,14 @@ void Log::log_packet_ax25(uint8_t *packet, size_t size){
      sprintf(ascii + i-7, "%c", 32);
     }
   }
-  Log::consoleAsync(PSTR("%02X %02X %02X %02X %02X %02X %02X | Source Address..........: %s  SSID: %i")
+  Log::console(PSTR("%02X %02X %02X %02X %02X %02X %02X | Source Address..........: %s  SSID: %i")
                      ,packet[7],packet[8],packet[9],packet[10],packet[11],packet[12],packet[13]
                      ,ascii,(packet[13]&(0x1E))>>1);
   ascii[0]=0;
   //1 byte  Control
-  Log::consoleAsync(PSTR("%02X                   | Control.................: %03i"),packet[14],packet[14]);
+  Log::console(PSTR("%02X                   | Control.................: %03i"),packet[14],packet[14]);
   //1 byte  PID
-  Log::consoleAsync(PSTR("%02X                   | PID.....................: %03i"),packet[15],packet[15]);
+  Log::console(PSTR("%02X                   | PID.....................: %03i"),packet[15],packet[15]);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   //AX.25 PAYLOAD
@@ -420,7 +420,7 @@ void Log::log_packet_ax25(uint8_t *packet, size_t size){
   Log::log_packet(packet_aux,size-16);
   
   }else{
-    Log::consoleAsync(PSTR(" *** Length less than 16 bytes. Packet not printed ***"));
+    Log::console(PSTR(" *** Length less than 16 bytes. Packet not printed ***"));
   }
   delete[] cadena;
   delete[] ascii;
