@@ -21,10 +21,7 @@
 #define SATELLITES_H
 class Satellites{
     public:
-    static bool isValidSatellite(int norad);
     static bool isValidSatelliteName(char name[25]);
-    static bool allowDistributeSatelliteData(int norad);
     static bool allowDistributeSatelliteNameData(char name[25]);
-    static bool isNotValidSatellite(int norad);
 };
 #endif

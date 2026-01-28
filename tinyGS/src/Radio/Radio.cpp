@@ -538,6 +538,8 @@ uint8_t Radio::listen()
           for (int i=0;i<(sizeAx25bin);i++){
             ax25bin[i]=(char)texto[i];
 	        }
+          delete[] texto;
+          status.lastPacketInfo.crc_error = true;
         }
         //RAW packet is replaced by the processed packet.
         respFrame=ax25bin;
@@ -589,6 +591,7 @@ uint8_t Radio::listen()
            }
         packet_logged=true;
         if (fcs!=crcfield){
+            status.lastPacketInfo.crc_error = true;
             Log::console(PSTR("Error_CRC"));
             respLen=9;
             //respLen=10;
@@ -645,11 +648,11 @@ uint8_t Radio::listen()
    
    ///////////////////////////////////////////////////////////////////////////
 
-    status.lastPacketInfo.crc_error = false;
+    //status.lastPacketInfo.crc_error = false;
     String encoded = base64::encode(respFrame, respLen);
     MQTT_Client::getInstance().sendRx(encoded, noisyInterrupt);
   }
-  else if (state == RADIOLIB_ERR_CRC_MISMATCH)
+  else if (state == RADIOLIB_ERR_CRC_MISMATCH || status.lastPacketInfo.crc_error )
   {
     // packet was received, but is malformed
     status.lastPacketInfo.crc_error = true;
