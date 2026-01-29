@@ -40,6 +40,7 @@ bool noisyInterrupt = false;
 bool allow_decode=true;
 //07/May/2025
 float Doppler_Frequency=0;
+bool send_error_info=false;
 
 Radio::Radio()
 #if CONFIG_IDF_TARGET_ESP32S3
@@ -649,8 +650,11 @@ uint8_t Radio::listen()
    ///////////////////////////////////////////////////////////////////////////
 
     //status.lastPacketInfo.crc_error = false;
-    String encoded = base64::encode(respFrame, respLen);
-    MQTT_Client::getInstance().sendRx(encoded, noisyInterrupt);
+    if(  !status.lastPacketInfo.crc_error || 
+        (status.lastPacketInfo.crc_error && send_error_info)){
+      String encoded = base64::encode(respFrame, respLen);
+      MQTT_Client::getInstance().sendRx(encoded, noisyInterrupt);
+    }
   }
   else if (state == RADIOLIB_ERR_CRC_MISMATCH || status.lastPacketInfo.crc_error )
   {
@@ -658,7 +662,7 @@ uint8_t Radio::listen()
     status.lastPacketInfo.crc_error = true;
 
     // if filter is active, filter the CRC errors
-    if (status.modeminfo.filter[0] == 0)
+    if (status.modeminfo.filter[0] == 0 && send_error_info)
     {
       String error_encoded = base64::encode("Error_CRC");
       MQTT_Client::getInstance().sendRx(error_encoded, noisyInterrupt);
