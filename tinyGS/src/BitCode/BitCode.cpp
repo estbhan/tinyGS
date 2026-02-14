@@ -109,8 +109,8 @@ size_t bini=0;
   	    bit=(0x01)<<(i-1);         
   	    byte_procesado = byte_procesado | bit;
   	    }
-	  primer_bit=segundo_bit;
-	 }
+	      primer_bit=segundo_bit;
+	    }
       salida[bini]=byte_procesado;
       bini++;
     } 
@@ -270,13 +270,14 @@ int BitCode::nrz2ax25(uint8_t *entrada, size_t sizeEntrada, uint8_t *ax25bin, si
     size_t sizeAx25hdlcbin=0;
     size_t sizeNrz=0;
     int bitstuff=0;
+
+    if (sizeEntrada>=16){
+
     scrambled=new uint8_t[sizeEntrada];
     ax25hdlcbin = new uint8_t[sizeEntrada];
     ax25inv=new uint8_t[sizeEntrada];
-    ax25hdlcbin=new uint8_t[sizeEntrada];
     ax25invbin=new uint8_t[sizeEntrada];
     nrz=new uint8_t[sizeEntrada];
-    if (sizeEntrada>=16){
 
     if (framing==1){
       BitCode::nrz2nrzi(entrada,sizeEntrada,ax25hdlcbin,&sizeAx25hdlcbin);
@@ -297,6 +298,12 @@ int BitCode::nrz2ax25(uint8_t *entrada, size_t sizeEntrada, uint8_t *ax25bin, si
     //Log::log_packet_hex(ax25invbin,sizeAx25invbin);
 	  BitCode::invierte_bytes_de_un_array(ax25invbin,sizeAx25invbin,ax25bin,sizeAx25bin);	
     
+    delete[] scrambled;
+    delete[] ax25hdlcbin;
+    delete[] ax25inv;
+    delete[] ax25invbin;
+    delete[] nrz;
+
     if (bitstuff==0){
       return 0;	  
 	  }else{
@@ -308,13 +315,6 @@ int BitCode::nrz2ax25(uint8_t *entrada, size_t sizeEntrada, uint8_t *ax25bin, si
       return 1;
     }
  
-    delete[] scrambled;
-    delete[] ax25hdlcbin;
-    delete[] ax25inv;
-    delete[] ax25hdlcbin;
-    delete[] ax25invbin;
-    delete[] nrz;
-    
 }
 
 /*  
