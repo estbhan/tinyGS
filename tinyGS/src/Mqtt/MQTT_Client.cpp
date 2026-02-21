@@ -506,7 +506,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       strcpy(sat, doc["sat"].as<char *>());
       Log::console(PSTR("Checking satellite %s Norad ID: %i"),sat, norad_id);
       //if (!Satellites::isValidSatellite(doc["NORAD"]))
-      if (!Satellites::isValidSatelliteName(sat))
+      if (!Satellites::allowTrackSatelliteName(sat))
       {
         Log::console(PSTR("Satelite is not in the list. Listening not started."));
         return;

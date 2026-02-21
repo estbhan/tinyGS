@@ -20,7 +20,7 @@
 #include "Satellites.h"
 #include <string.h>
 
-bool Satellites::isValidSatelliteName(char name[25]){
+bool Satellites::allowTrackSatelliteName(char name[25]){
     if (   strcmp(name,"Norbi")==0 
         || strcmp(name,"Norby-2")==0 
         || strcmp(name,"ONDOSAT-OWL-1")==0 
@@ -62,6 +62,7 @@ bool Satellites::isValidSatelliteName(char name[25]){
         || strcmp(name,"LILACSAT-2")==0 
         || strcmp(name,"GRBBETA")==0 
         || strcmp(name,"Norby-2_FSK")==0
+        || strcmp(name,"Lobachevsky")==0
         )
         {
           return true;
@@ -95,6 +96,7 @@ bool Satellites::allowDistributeSatelliteNameData(char name[25]){
         || strcmp(name,"CUBEBEL-2")==0
         || strcmp(name,"Norby-2_FSK")==0
         || strcmp(name,"SNUGLITE-III Duri")==0 
+        || strcmp(name,"Lobachevsky")==0
         )
         {
           return true;
