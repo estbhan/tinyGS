@@ -259,23 +259,20 @@ int BitCode::nrz2ax25(uint8_t *entrada, size_t sizeEntrada, uint8_t *ax25bin, si
 
     char *ax25hdlc;
     char *texto;
-    uint8_t *scrambled;
+
     uint8_t *ax25hdlcbin;
     uint8_t *ax25invbin;
-    uint8_t *ax25inv;
     uint8_t *nrz;
-    size_t sizeScrambled=0;
-    size_t sizeAx25inv=0;
-    size_t sizeAx25invbin=0;
+
     size_t sizeAx25hdlcbin=0;
+    size_t sizeAx25invbin=0;
     size_t sizeNrz=0;
+    
     int bitstuff=0;
 
     if (sizeEntrada>=16){
 
-    scrambled=new uint8_t[sizeEntrada];
     ax25hdlcbin = new uint8_t[sizeEntrada];
-    ax25inv=new uint8_t[sizeEntrada];
     ax25invbin=new uint8_t[sizeEntrada];
     nrz=new uint8_t[sizeEntrada];
 
@@ -298,9 +295,7 @@ int BitCode::nrz2ax25(uint8_t *entrada, size_t sizeEntrada, uint8_t *ax25bin, si
     //Log::log_packet_hex(ax25invbin,sizeAx25invbin);
 	  BitCode::invierte_bytes_de_un_array(ax25invbin,sizeAx25invbin,ax25bin,sizeAx25bin);	
     
-    delete[] scrambled;
     delete[] ax25hdlcbin;
-    delete[] ax25inv;
     delete[] ax25invbin;
     delete[] nrz;
 
